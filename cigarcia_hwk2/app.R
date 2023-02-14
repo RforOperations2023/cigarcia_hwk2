@@ -120,7 +120,7 @@ sidebar <- dashboardSidebar(
                                    "$250,001 - $500,000", 
                                    "$500,001 - $1,000,000", 
                                    "More than $1,000,000"),
-                       selected = "$100,000 - $250,000"),
+                       selected = c("Less than $100,000", "$100,000 - $250,000", "$250,001 - $500,000")),
     
       
       # Show data table ---------------------------------------------
@@ -144,7 +144,7 @@ dashboard.body <- dashboardBody(tabItems(
     #Plots---------------------------------------------------------
   tabItem("plot",
       # Tabs to separate each graph
-      fluidRow(title = "Plots",
+      fluidRow(tabBox(title = "Plots",
         width = 12,
         tabPanel("Market Analysis", plotOutput(outputId = "scatterplot", height = "350px", width = "900px")), #tab for scatter plot
         tabPanel("Month Sold Distribution", plotOutput(outputId = "bar.chart",  height = "350px", width = "900px")), #tab for bar chart
@@ -152,11 +152,25 @@ dashboard.body <- dashboardBody(tabItems(
       )  
       ),
       
-      
+
+  
+  tabItem("plot",          
+          
+          # Plot ----------------------------------------------
+          fluidRow(
+            tabBox(title = "Plot",
+                   width = 12,
+                   tabPanel("Distribution by Date", plotlyOutput("plot_dist")),
+                   tabPanel("Distribution by Positive - Negative Score", plotlyOutput("plot_NegPos")),
+                   tabPanel("Distribution by Sentiment",plotOutput(outputId = "plot_senti")))
+          )
+  ),
+  
+  
      # Widgets page ----------------------------------------------
    tabItem("widgets",
               # Input and Value Boxes ----------------------------------------------
-              fluidRow(
+              fluidRow(title = "Statistics",
                 infoBoxOutput("avg.price", width = 4),
                 infoBoxOutput("avg.land", width = 4),
                 infoBoxOutput("avg.tot.lvg.area", width = 4),
@@ -175,7 +189,7 @@ dashboard.body <- dashboardBody(tabItems(
               width = 12))
   )
   )
-
+  )
 
 ui <- dashboardPage(header, sidebar, dashboard.body, skin = "black")
 
