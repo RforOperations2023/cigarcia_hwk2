@@ -201,14 +201,22 @@ server <- function(input, output) {
   print(input)
   
   housing.subset <- reactive({
-    req(input$property.age)
-    req(input$property.price)
-    filter(housing, price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2])
+    house <- housing %>%
+      #req(input$property.age) %>%
+      #req(input$property.price) %>%
+      filter(price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2])
+    return(house)
   })
   
+  housesInput <- reactive({
+    housing.subset() %>%
+      melt(id = "parcel.no")
+  }) 
+
   
   # Create scatter plot ----------------------------------------------
   output$scatterplot <- renderPlotly({
+    dat <- subset(housesInput(), variable == "")
     ggplot(data = housing.subset(), aes_string(x = input$x, y = input$y)) +
       geom_point(color = "steelblue") +
       #scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
@@ -222,6 +230,7 @@ server <- function(input, output) {
 
   # Create Bar Chart -------------------------------------------------
   output$bar.chart <- renderPlotly({
+    dat <- subset(housesInput(), variable == "month.sold.name")
     ggplot(data = housing.subset(), aes(x = month.sold.name)) +
       geom_bar(color = 'lightblue', fill = 'lightblue') +
       ggtitle("Number of properties sold per month in 2016") +
