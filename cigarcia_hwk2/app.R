@@ -273,7 +273,7 @@ server <- function(input, output) {
     house <- housing.subset()
     avg <- round(mean(house$lnd.sqft, na.rm = T), 2)
     
-    infoBox("Average Land Area (sqft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "blue")
+    infoBox("Average Land Area (sqft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "yellow")
   })
   
   # Average Floor Area Square Ft -------------------------------------
@@ -281,7 +281,7 @@ server <- function(input, output) {
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$tot.lvg.area), na.rm = T), 2)
     
-    infoBox("Average Floor Area (sqft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "blue")
+    infoBox("Average Floor Area (sqft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "red")
   })
   
   # Average Ocean Distance -------------------------------------------
@@ -289,7 +289,7 @@ server <- function(input, output) {
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$ocean.dist), na.rm = T), 2)
     
-    infoBox("Average Ocean Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "blue")
+    infoBox("Average Ocean Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "purple")
   })
   
   # Average Water Distance -------------------------------------------
@@ -297,7 +297,7 @@ server <- function(input, output) {
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$water.dist), na.rm = T), 2)
     
-    infoBox("Average Water Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "blue")
+    infoBox("Average Water Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "green")
   })
   
   # Average Center Distance -------------------------------------------
@@ -305,7 +305,7 @@ server <- function(input, output) {
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$cntr.dist), na.rm = T), 2)
     
-    infoBox("Average Distance to Miami Business District (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "blue")
+    infoBox("Average Distance to Miami Business District (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "orange")
   })
   
   # Average Highway Distance -------------------------------------------
@@ -313,7 +313,7 @@ server <- function(input, output) {
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$hw.dist), na.rm = T), 2)
     
-    infoBox("Average Highway Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "blue")
+    infoBox("Average Highway Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "black")
   })
 
   
