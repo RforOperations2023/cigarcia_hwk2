@@ -146,9 +146,9 @@ dashboard.body <- dashboardBody(tabItems(
       # Tabs to separate each graph
       fluidRow(tabBox(title = "Plots",
         width = 12,
-        tabPanel("Market Analysis", plotOutput(outputId = "scatterplot", height = "350px", width = "900px")), #tab for scatter plot
-        tabPanel("Month Sold Distribution", plotOutput(outputId = "bar.chart",  height = "350px", width = "900px")), #tab for bar chart
-        tabPanel("Sale Price Distribution", plotOutput(outputId = "pie.chart",  height = "350px", width = "900px"))) #tab for pie chart
+        tabPanel("Market Analysis", plotOutput(outputId = "scatterplot")), #tab for scatter plot
+        tabPanel("Month Sold Distribution", plotOutput(outputId = "bar.chart")), #tab for bar chart
+        tabPanel("Sale Price Distribution", plotOutput(outputId = "pie.chart"))) #tab for pie chart
       )  
       ),
       
@@ -216,8 +216,8 @@ server <- function(input, output) {
   
   # Create scatter plot ----------------------------------------------
   output$scatterplot <- renderPlotly({
-    dat <- subset(housesInput(), variable == "")
-    ggplot(data = housing.subset(), aes_string(x = input$x, y = input$y)) +
+    dat <- subset(housesInput(), variable == "sale.prc")
+    ggplot(data = dat, aes_string(x = input$x, y = input$y)) +
       geom_point(color = "steelblue") +
       #scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
       #scale_x_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
@@ -231,7 +231,7 @@ server <- function(input, output) {
   # Create Bar Chart -------------------------------------------------
   output$bar.chart <- renderPlotly({
     dat <- subset(housesInput(), variable == "month.sold.name")
-    ggplot(data = housing.subset(), aes(x = month.sold.name)) +
+    ggplot(data = dat, aes(x = month.sold.name)) +
       geom_bar(color = 'lightblue', fill = 'lightblue') +
       ggtitle("Number of properties sold per month in 2016") +
       xlab("Month of Sale") +
@@ -260,60 +260,60 @@ server <- function(input, output) {
   )
   
   # Average Price ----------------------------------------------------
-  output$avg.price <- renderInfoBox({
+  output$avg.price <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(house$sale.prc, na.rm = T), 2)
     
-    infoBox("Average Sale Price", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "blue")
+    valueBox(subtitle = "Average Sale Price", value = avg, color = "blue")
 }) 
     
     
   # Average Land Square Ft -------------------------------------------
-  output$avg.land <- renderInfoBox({
+  output$avg.land <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(house$lnd.sqft, na.rm = T), 2)
     
-    infoBox("Average Land Area (sqft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "yellow")
+    valueBox(subtitle = "Average Land Area (sqft)", value = avg, color = "yellow")
   })
   
   # Average Floor Area Square Ft -------------------------------------
-  output$avg.tot.lvg.area <- renderInfoBox({
+  output$avg.tot.lvg.area <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$tot.lvg.area), na.rm = T), 2)
     
-    infoBox("Average Floor Area (sqft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "red")
+    valueBox(subtitle = "Average Floor Area (sqft)", value = avg, color = "red")
   })
   
   # Average Ocean Distance -------------------------------------------
-  output$avg.ocean.dist <- renderInfoBox({
+  output$avg.ocean.dist <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$ocean.dist), na.rm = T), 2)
     
-    infoBox("Average Ocean Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "purple")
+    valueBox(subtitle = "Average Ocean Distance (ft)", value = avg, color = "purple")
   })
   
   # Average Water Distance -------------------------------------------
-  output$avg.water.dist <- renderInfoBox({
+  output$avg.water.dist <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$water.dist), na.rm = T), 2)
     
-    infoBox("Average Water Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "green")
+    valueBox(subtitle = "Average Water Distance (ft)", value = avg, color = "green")
   })
   
   # Average Center Distance -------------------------------------------
-  output$avg.cntr.dist <- renderInfoBox({
+  output$avg.cntr.dist <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$cntr.dist), na.rm = T), 2)
     
-    infoBox("Average Distance to Miami Business District (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "orange")
+    valueBox(subtitle = "Average Dist to Center (ft)", value = avg , color = "orange")
   })
   
   # Average Highway Distance -------------------------------------------
-  output$avg.hw.dist <- renderInfoBox({
+  output$avg.hw.dist <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$hw.dist), na.rm = T), 2)
     
-    infoBox("Average Highway Distance (ft)", value = avg, subtitle = paste(nrow(house),"Properties"), icon = icon("thumbs-up"), color = "black")
+    valueBox(subtitle = "Average Highway Distance (ft)", value = avg, color = "black")
   })
 
   
