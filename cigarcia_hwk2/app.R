@@ -18,6 +18,7 @@ library(tidyverse)
 #Importing Data
 
 housing <- read.csv("miami_housing_data.csv") 
+
 print(colnames(housing))
 
 #Changing Column names 
@@ -144,33 +145,20 @@ dashboard.body <- dashboardBody(tabItems(
     #Plots---------------------------------------------------------
   tabItem("plot",
       # Tabs to separate each graph
-      fluidRow(tabBox(title = "Plots",
+      fluidRow(tabBox(title = "Plot",
         width = 12,
-        tabPanel("Market Analysis", plotOutput(outputId = "scatterplot")), #tab for scatter plot
-        tabPanel("Month Sold Distribution", plotOutput(outputId = "bar.chart")), #tab for bar chart
-        tabPanel("Sale Price Distribution", plotOutput(outputId = "pie.chart"))) #tab for pie chart
+        tabPanel("Market Analysis", plotlyOutput(outputId = "scatterplot")), #tab for scatter plot
+        tabPanel("Month Sold Distribution", plotlyOutput(outputId = "bar.chart")), #tab for bar chart
+        tabPanel("Sale Price Distribution", plotOutput(outputId = "pie.chart")) #tab for pie chart
+      )
       )  
       ),
-      
 
-  
-  tabItem("plot",          
-          
-          # Plot ----------------------------------------------
-          fluidRow(
-            tabBox(title = "Plot",
-                   width = 12,
-                   tabPanel("Distribution by Date", plotlyOutput("plot_dist")),
-                   tabPanel("Distribution by Positive - Negative Score", plotlyOutput("plot_NegPos")),
-                   tabPanel("Distribution by Sentiment",plotOutput(outputId = "plot_senti")))
-          )
-  ),
-  
   
      # Widgets page ----------------------------------------------
    tabItem("widgets",
               # Input and Value Boxes ----------------------------------------------
-              fluidRow(title = "Statistics",
+              fluidRow(
                 infoBoxOutput("avg.price", width = 4),
                 infoBoxOutput("avg.land", width = 4),
                 infoBoxOutput("avg.tot.lvg.area", width = 4),
@@ -197,59 +185,52 @@ ui <- dashboardPage(header, sidebar, dashboard.body, skin = "black")
 # Define server function required to create the scatter plot ---------
 server <- function(input, output) {
   
-#
-  print(input)
-  
   housing.subset <- reactive({
-    house <- housing %>%
-      #req(input$property.age) %>%
-      #req(input$property.price) %>%
-      filter(price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2])
-    return(house)
+      req(input$property.age, input$property.price)
+      filter(housing, price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2])
   })
   
-  housesInput <- reactive({
-    housing.subset() %>%
-      melt(id = "parcel.no")
-  }) 
-
   
-  # Create scatter plot ----------------------------------------------
-  output$scatterplot <- renderPlotly({
-    dat <- subset(housesInput(), variable == "sale.prc")
-    ggplot(data = dat, aes_string(x = input$x, y = input$y)) +
-      geom_point(color = "steelblue") +
-      #scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-      #scale_x_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
-      theme(axis.title = element_text(color = "black", size = 15, face = "bold"),
-            axis.title.y = element_text(face = "bold"))
-      #labs(x = toTitleCase(str_replace_all(input$x, "\\.", " ")),
-      #     y = toTitleCase(str_replace_all(input$y, "\\.", " ")))
-  })
-  
+  #housesInput <- reactive({
+  #  housing.subset() %>%
+  #    melt(id = "price.range")
+  #}) 
 
   # Create Bar Chart -------------------------------------------------
   output$bar.chart <- renderPlotly({
-    dat <- subset(housesInput(), variable == "month.sold.name")
-    ggplot(data = dat, aes(x = month.sold.name)) +
-      geom_bar(color = 'lightblue', fill = 'lightblue') +
-      ggtitle("Number of properties sold per month in 2016") +
-      xlab("Month of Sale") +
-      ylab("Property Count") +
-      theme_classic() +
-      coord_flip() +
-      geom_text(stat='count', aes(label=..count..), position = position_stack(vjust= 1.03)) + 
-      theme(axis.title = element_text(color = "black", size = 15, face = "bold"),
-            axis.title.y = element_text(face = "bold"))
+    #dat <- subset(housesInput=(), variable == "month.sold.name")
+    ggplotly(
+      ggplot(data = housing.subset(), aes(x = month.sold.name)) +
+        geom_bar(color = 'lightblue', fill = 'lightblue') +
+        ggtitle("Number of properties sold per month in 2016") +
+        xlab("Month of Sale") +
+        ylab("Property Count") +
+        theme_classic() +
+        coord_flip() +
+        geom_text(stat='count', aes(label=..count..), position = position_stack(vjust= 1.03)) + 
+        theme(axis.title = element_text(color = "black", size = 15, face = "bold"),
+              axis.title.y = element_text(face = "bold"))
+    )
   })
   
+  
+  # Create scatter plot ----------------------------------------------
+  output$scatterplot <- renderPlotly({
+    #dat <- subset(housesInput(), variable == c(input$x, input$y))
+    ggplotly(
+      ggplot(data = housing.subset(), aes_string(x = input$x, y = input$y)) +
+        geom_point(color = "steelblue") +
+        theme(axis.title = element_text(color = "black", size = 15, face = "bold"),
+              axis.title.y = element_text(face = "bold"))
+    )  
+  })
+
   
   # # Create Pie Chart-------------------------------------------------
   output$pie.chart <- renderPlot({
     pie <- housing.subset() %>%
       count(price.range) %>%
       mutate(percent = n/sum(n))
-    
     ggplot(data = pie, aes(x = "", y = percent, fill = price.range)) +
       geom_bar(position = "fill", width = 1, stat = "identity", color = "white") +
       scale_fill_brewer(palette = "Blues", name = "Price Range") +
