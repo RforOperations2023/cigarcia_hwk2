@@ -69,7 +69,7 @@ sidebar <- dashboardSidebar(
     
     #Menu Items------------------------------------------------------------
     menuItem("Plots", icon = icon("bar-chart"), tabName = "plot"),
-    menuItem("Statistics", icon = icon("cog"), tabName = "widgets", badgeLabel = "", badgeColor = "blue"),
+    menuItem("Statistics", icon = icon("cog"), tabName = "averages", badgeLabel = "", badgeColor = "blue"),
     menuItem("Data Table", icon = icon("table"), tabName = "table", badgeLabel = "", badgeColor = "blue"),
     
     
@@ -164,8 +164,8 @@ dashboard.body <- dashboardBody(tabItems(
       ),
 
   
-     # Widgets page ----------------------------------------------
-   tabItem("widgets",
+     # Averages page ----------------------------------------------
+   tabItem("averages",
               # Input and Value Boxes ----------------------------------------------
               fluidRow(
                 infoBoxOutput("avg.price", width = 4),
@@ -203,7 +203,6 @@ server <- function(input, output) {
 
   # Create Bar Chart -------------------------------------------------
   output$bar.chart <- renderPlotly({
-    #dat <- subset(housesInput=(), variable == "month.sold.name")
     ggplotly(
       ggplot(data = housing.subset(), aes(x = month.sold.name)) +
         geom_bar(color = 'lightblue', fill = 'lightblue') +
@@ -221,15 +220,19 @@ server <- function(input, output) {
   
   # Create scatter plot ----------------------------------------------
   output$scatterplot <- renderPlotly({
-    #dat <- subset(housesInput(), variable == c(input$x, input$y))
     ggplotly(
       ggplot(data = housing.subset(), aes_string(x = input$x, y = input$y)) +
         geom_point(color = "steelblue") +
+        scale_y_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
+        scale_x_continuous(labels=function(x) format(x, big.mark = ",", scientific = FALSE)) +
         theme(axis.title = element_text(color = "black", size = 15, face = "bold"),
-              axis.title.y = element_text(face = "bold"))
-    )  
-  })
-
+              axis.title.y = element_text(face = "bold")) + 
+        labs(x = toTitleCase(str_replace_all(input$x, "\\.", " ")),
+             y = toTitleCase(str_replace_all(input$y, "\\.", " "))
+    ))  
+  }
+  )
+  
   
   # # Create Pie Chart-------------------------------------------------
 
@@ -238,21 +241,13 @@ server <- function(input, output) {
     # Plotting the pie chart using plot_ly() function
     pie <- plot_ly(housing.subset(), values =  ~sale.prc, labels = ~price.range,
                    type = "pie",
-                   textposition = "outside")
-    #textinfo = "percent")
-    #marker = list(colors = c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6", "#4292C6")),
-    #              line = list(color = "#FFFFFF", width = 1))
-
-    pie <- pie %>% layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-
-
-  
+                   textposition = "outside", 
+                   hovertemplate = "<b>%{label}</b><br>Percent of total: %{percent}<extra></extra>")
+    
     return(pie)
 
   })
 
-  
   
   # Average Price ----------------------------------------------------
   
@@ -301,14 +296,6 @@ server <- function(input, output) {
     valueBox(subtitle = "Average Water Distance (ft)", value = formatted_avg, icon = icon("water"), color = "teal")
   })
   
-  # # Average Center Distance -------------------------------------------
-  # output$avg.cntr.dist <- renderValueBox({
-  #   house <- housing.subset()
-  #   avg <- round(mean(as.numeric(house$cntr.dist), na.rm = T), 2)
-  #   formatted_avg <- format(avg, big.mark = ",", decimal.mark = ".", nsmall = 2)
-  #   
-  #   valueBox(subtitle = "Average Dist to Center (ft)", value = formatted_avg , icon = icon("city"), color = "green")
-  # })
   
   # Average Highway Distance -------------------------------------------
   output$avg.hw.dist <- renderValueBox({
