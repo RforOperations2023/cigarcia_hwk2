@@ -121,7 +121,7 @@ sidebar <- dashboardSidebar(
                                    "$250,001 - $500,000", 
                                    "$500,001 - $1,000,000", 
                                    "More than $1,000,000"),
-                       selected = c("Less than $100,000", "$100,000 - $250,000", "$250,001 - $500,000")),
+                       selected = c("Less than $100,000", "$100,000 - $250,000", "$250,001 - $500,000", "$500,001 - $1,000,000", "More than $1,000,000")),
     
       
       # Show data table ---------------------------------------------
@@ -149,7 +149,7 @@ dashboard.body <- dashboardBody(tabItems(
         width = 12,
         tabPanel("Market Analysis", plotlyOutput(outputId = "scatterplot")), #tab for scatter plot
         tabPanel("Month Sold Distribution", plotlyOutput(outputId = "bar.chart")), #tab for bar chart
-        tabPanel("Sale Price Distribution", plotOutput(outputId = "pie.chart")) #tab for pie chart
+        tabPanel("Sale Price Distribution", plotlyOutput(outputId = "pie.chart")) #tab for pie chart
       )
       )  
       ),
@@ -190,11 +190,6 @@ server <- function(input, output) {
       filter(housing, price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2])
   })
   
-  
-  #housesInput <- reactive({
-  #  housing.subset() %>%
-  #    melt(id = "price.range")
-  #}) 
 
   # Create Bar Chart -------------------------------------------------
   output$bar.chart <- renderPlotly({
@@ -227,25 +222,32 @@ server <- function(input, output) {
 
   
   # # Create Pie Chart-------------------------------------------------
-  output$pie.chart <- renderPlot({
-    pie <- housing.subset() %>%
-      count(price.range) %>%
-      mutate(percent = n/sum(n))
-    ggplot(data = pie, aes(x = "", y = percent, fill = price.range)) +
-      geom_bar(position = "fill", width = 1, stat = "identity", color = "white") +
-      scale_fill_brewer(palette = "Blues", name = "Price Range") +
-      geom_text(aes(x = 1.7, label = scales::percent(percent, accuracy = .1)), position = position_stack(vjust = .6)) +
-      coord_polar(theta = "y") +
-      theme_void()
-  }
-  )
+  output$pie.chart <- renderPlotly({
+  
+    # Plotting the pie chart using plot_ly() function
+    pie <- plot_ly(housing.subset(), values =  ~sale.prc, labels = ~price.range,
+                   type = "pie", 
+                   textposition = "outside", 
+                   textinfo = "percent")
+                   #marker = list(colors = c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6", "#4292C6")),
+                   #              line = list(color = "#FFFFFF", width = 1))
+    
+    pie <- pie %>% layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+    
+    return(pie)
+    
+    })
+    
   
   # Average Price ----------------------------------------------------
   output$avg.price <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(house$sale.prc, na.rm = T), 2)
     
-    valueBox(subtitle = "Average Sale Price", value = avg, color = "blue")
+    
+    valueBox(subtitle = "Average Sale Price ($)", value = avg, color = "blue")
 }) 
     
     
