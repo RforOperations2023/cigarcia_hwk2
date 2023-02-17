@@ -109,13 +109,21 @@ sidebar <- dashboardSidebar(
       
       # Set Age of the property ------------------------------------
       sliderInput(inputId = "property.age",
-                  label = "Select age of the property for all graphs and table:", 
+                  label = "Select age of the property for all graphs, averages and table:", 
                   min = 0, max = 96, 
                   value = c(0, 10)),
       
+    
+     # Set Age of the property ------------------------------------
+     sliderInput(inputId = "property.ocean.dist",
+                label = "Select properties ocean distance (ft) for all graphs, averages and table:", 
+                min = 0, max = 67000, 
+                value = c(0, 5280)),    
+    
+    
      # Set Price Range of the property -----------------------------
      checkboxGroupInput(inputId = "property.price",
-                       label = "Select price of the property for all graphs and table:",
+                       label = "Select price of the property for all graphs, averages and table:",
                        choices = c("Less than $100,000", 
                                    "$100,000 - $250,000", 
                                    "$250,001 - $500,000", 
@@ -123,7 +131,8 @@ sidebar <- dashboardSidebar(
                                    "More than $1,000,000"),
                        selected = c("Less than $100,000", "$100,000 - $250,000", "$250,001 - $500,000", "$500,001 - $1,000,000", "More than $1,000,000")),
     
-      
+  
+    
       # Show data table ---------------------------------------------
       checkboxInput(inputId = "show_data",
                     label = "Show data table",
@@ -164,7 +173,7 @@ dashboard.body <- dashboardBody(tabItems(
                 infoBoxOutput("avg.tot.lvg.area", width = 4),
                 infoBoxOutput("avg.ocean.dist", width = 4),
                 infoBoxOutput("avg.water.dist", width = 4),
-                infoBoxOutput("avg.cntr.distt", width = 4),
+                #infoBoxOutput("avg.cntr.distt", width = 4),
                 infoBoxOutput("avg.hw.dist", width = 4),
               )
       ),
@@ -187,7 +196,8 @@ server <- function(input, output) {
   
   housing.subset <- reactive({
       req(input$property.age, input$property.price)
-      filter(housing, price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2])
+      filter(housing, price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2] & 
+               ocean.dist >= input$property.ocean.dist[1] & ocean.dist <= input$property.ocean.dist[2])
   })
   
 
@@ -227,14 +237,13 @@ server <- function(input, output) {
     # Plotting the pie chart using plot_ly() function
     pie <- plot_ly(housing.subset(), values =  ~sale.prc, labels = ~price.range,
                    type = "pie", 
-                   textposition = "outside", 
-                   textinfo = "percent")
+                   textposition = "outside") 
+                   #textinfo = "percent")
                    #marker = list(colors = c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6", "#4292C6")),
                    #              line = list(color = "#FFFFFF", width = 1))
     
     pie <- pie %>% layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-
     
     return(pie)
     
@@ -242,12 +251,13 @@ server <- function(input, output) {
     
   
   # Average Price ----------------------------------------------------
+  
   output$avg.price <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(house$sale.prc, na.rm = T), 2)
+    formatted_avg <- paste0("$", format(avg, nsmall = 2, big.mark = ","))
     
-    
-    valueBox(subtitle = "Average Sale Price ($)", value = avg, color = "blue")
+    valueBox(subtitle = "Average Sale Price ($)", value = formatted_avg , icon = icon("dollar-sign"), color = "green")
 }) 
     
     
@@ -255,48 +265,54 @@ server <- function(input, output) {
   output$avg.land <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(house$lnd.sqft, na.rm = T), 2)
+    formatted_avg <- format(avg, big.mark = ",", decimal.mark = ".", nsmall = 2)
     
-    valueBox(subtitle = "Average Land Area (sqft)", value = avg, color = "yellow")
+    valueBox(subtitle = "Average Land Area (sqft)", value = formatted_avg, icon = icon("mountain"), color = "blue")
   })
   
   # Average Floor Area Square Ft -------------------------------------
   output$avg.tot.lvg.area <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$tot.lvg.area), na.rm = T), 2)
+    formatted_avg <- format(avg, big.mark = ",", decimal.mark = ".", nsmall = 2)
     
-    valueBox(subtitle = "Average Floor Area (sqft)", value = avg, color = "red")
+    valueBox(subtitle = "Average Floor Area (sqft)", value = formatted_avg , icon = icon("house"), color = "red")
   })
   
   # Average Ocean Distance -------------------------------------------
   output$avg.ocean.dist <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$ocean.dist), na.rm = T), 2)
+    formatted_avg <- format(avg, big.mark = ",", decimal.mark = ".", nsmall = 2)
     
-    valueBox(subtitle = "Average Ocean Distance (ft)", value = avg, color = "purple")
+    valueBox(subtitle = "Average Ocean Distance (ft)", value = formatted_avg, icon = icon("fish"), color = "purple")
   })
   
   # Average Water Distance -------------------------------------------
   output$avg.water.dist <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$water.dist), na.rm = T), 2)
-    
-    valueBox(subtitle = "Average Water Distance (ft)", value = avg, color = "green")
+    formatted_avg <- format(avg, big.mark = ",", decimal.mark = ".", nsmall = 2)
+
+    valueBox(subtitle = "Average Water Distance (ft)", value = formatted_avg, icon = icon("water"), color = "teal")
   })
   
-  # Average Center Distance -------------------------------------------
-  output$avg.cntr.dist <- renderValueBox({
-    house <- housing.subset()
-    avg <- round(mean(as.numeric(house$cntr.dist), na.rm = T), 2)
-    
-    valueBox(subtitle = "Average Dist to Center (ft)", value = avg , color = "orange")
-  })
+  # # Average Center Distance -------------------------------------------
+  # output$avg.cntr.dist <- renderValueBox({
+  #   house <- housing.subset()
+  #   avg <- round(mean(as.numeric(house$cntr.dist), na.rm = T), 2)
+  #   formatted_avg <- format(avg, big.mark = ",", decimal.mark = ".", nsmall = 2)
+  #   
+  #   valueBox(subtitle = "Average Dist to Center (ft)", value = formatted_avg , icon = icon("city"), color = "green")
+  # })
   
   # Average Highway Distance -------------------------------------------
   output$avg.hw.dist <- renderValueBox({
     house <- housing.subset()
     avg <- round(mean(as.numeric(house$hw.dist), na.rm = T), 2)
+    formatted_avg <- format(avg, big.mark = ",", decimal.mark = ".", nsmall = 2)
     
-    valueBox(subtitle = "Average Highway Distance (ft)", value = avg, color = "black")
+    valueBox(subtitle = "Average Highway Distance (ft)", value = formatted_avg, icon = icon("truck"), color = "yellow")
   })
 
   
