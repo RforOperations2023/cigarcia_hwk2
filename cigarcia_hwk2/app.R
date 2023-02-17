@@ -64,6 +64,7 @@ header <- dashboardHeader(title = "Miami Housing Market")
   
 sidebar <- dashboardSidebar(
   sidebarMenu(
+  
     id = "tabs",
     
     #Menu Items------------------------------------------------------------
@@ -73,11 +74,11 @@ sidebar <- dashboardSidebar(
     
     
     # Horizontal line for visual separation -----------------------
-    hr(),    
+    hr(),
       
     # Select variable for y-axis ----------------------------------
     selectInput(inputId = "y", 
-                  label = "Market Analysis Y-axis:",
+                  label = "Plots - Market Analysis Y-axis:",
                   choices = c("Sale price" = "sale.prc", 
                               "Land area (sqft)" = "lnd.sqft", 
                               "Floor area (sqft)" = "tot.lvg.area", 
@@ -91,7 +92,7 @@ sidebar <- dashboardSidebar(
     
     # Select variable for x-axis ----------------------------------
     selectInput(inputId = "x", 
-                  label = "Market Analysis X-axis:",
+                  label = "Plots - Market Analysis X-axis:",
                   choices = c("Sale price" = "sale.prc", 
                               "Land area (sqft)" = "lnd.sqft", 
                               "Floor area (sqft)" = "tot.lvg.area", 
@@ -105,8 +106,7 @@ sidebar <- dashboardSidebar(
       
     # Horizontal line for visual separation -----------------------
     hr(),      
-      
-      
+    
       # Set Age of the property ------------------------------------
       sliderInput(inputId = "property.age",
                   label = "Select age of the property for all graphs, averages and table:", 
@@ -195,7 +195,7 @@ ui <- dashboardPage(header, sidebar, dashboard.body, skin = "black")
 server <- function(input, output) {
   
   housing.subset <- reactive({
-      req(input$property.age, input$property.price)
+      req(input$property.age, input$property.price, input$property.ocean.dist)
       filter(housing, price.range %in% input$property.price & age >= input$property.age[1] & age <= input$property.age[2] & 
                ocean.dist >= input$property.ocean.dist[1] & ocean.dist <= input$property.ocean.dist[2])
   })
@@ -232,23 +232,27 @@ server <- function(input, output) {
 
   
   # # Create Pie Chart-------------------------------------------------
+
   output$pie.chart <- renderPlotly({
-  
+
     # Plotting the pie chart using plot_ly() function
     pie <- plot_ly(housing.subset(), values =  ~sale.prc, labels = ~price.range,
-                   type = "pie", 
-                   textposition = "outside") 
-                   #textinfo = "percent")
-                   #marker = list(colors = c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6", "#4292C6")),
-                   #              line = list(color = "#FFFFFF", width = 1))
-    
+                   type = "pie",
+                   textposition = "outside")
+    #textinfo = "percent")
+    #marker = list(colors = c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6", "#4292C6")),
+    #              line = list(color = "#FFFFFF", width = 1))
+
     pie <- pie %>% layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-    
+
+
+  
     return(pie)
-    
-    })
-    
+
+  })
+
+  
   
   # Average Price ----------------------------------------------------
   
